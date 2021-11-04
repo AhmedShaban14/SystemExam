@@ -1,0 +1,143 @@
+﻿@model IEnumerable<ExamSystem.Models.Question>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+
+
+<!-- Button Add Question modal -->
+<button class="btn btn-outline-primary" style="margin:20px 0px" onclick="openAddPartial()" data-toggle="modal" data-target="#myModalAdd">
+    Add New Question
+</button>
+
+<!-- Modal Add Question -->
+<div class="modal fade" id="myModalAdd" tabindex="-1" aria-labelledby="myModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModal">Add New Question !</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBodyAdd">
+                @*My Form Here ..*@
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Question -->
+<div class="modal fade" id="myModalEdit" tabindex="-1" aria-labelledby="myModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModal">Edit Question </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBodyEdit">
+                @*My Form Here ..*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<table class="table">
+    <tr>
+        <th>
+            QuestionText
+        </th>
+        <th>
+            Score
+        </th>
+        <th></th>
+    </tr>
+
+    @if (ViewBag.examList != null)
+    {
+
+        foreach (var item in ViewBag.examList)
+        {
+            <tr id="row_@item.Id">
+                <td>
+                    @item.QuestionText
+                </td>
+                <td>
+                    @item.Score
+
+                </td>
+                <td>
+                    <a href="#" onclick="openEditPartial(@item.Id)" class="btn btn-outline-info"><i class="fas fa-edit"></i></a>
+
+                    @*@Html.ActionLink("Edit", "Edit", new { id = item.Id }) |*@
+@*                    @Html.ActionLink("Details", "Details", new { id = item.Id }) |*@
+                    <a href="#" onclick="DeleteConfirm(@item.Id)" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+        }
+
+    }
+
+</table>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script>
+
+    var openAddPartial = function () {
+        $.ajax({
+            type: 'GET',
+            url: "/Question/AddQuestion",
+            success: function (response) {
+                $("#myModalAdd").modal("show");
+                $("#modalBodyAdd").html(response);
+            }
+        });
+    }
+    var openEditPartial = function (id) {
+        $.ajax({
+            type: "GET",
+            url: "/Question/EditQuestion",
+            data: { QuestionId: id },
+            success: function (response) {
+                $("#myModalEdit").modal("show");
+                $("#modalBodyEdit").html(response);
+            }
+        });
+    }
+    //Delete Using SWAL:
+    var DeleteConfirm = function (id) {
+        swal({
+            title: "Confirmation ? ",
+            text: "Are You Sure You Want To Delete?! ",
+            type: "warning",
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes,Please Delete It ..",
+            showCancelButton: true,
+            closeOnConfirm: false,
+        }, function (isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Question/DeleteQuestion/",
+                    data: { QuestionId: id },
+                    success: function (response) {
+                        if (response.result == 1) {
+                            $("#row_" + id).remove();
+                            swal("Deleted !", "Question Deleted Successfully", "success");
+                        }
+                    }
+                });
+            }
+
+        });
+    }
+</script>
+

@@ -1,0 +1,193 @@
+﻿@model ExamSystem.ViewModels.QuestionViewModel
+<form id="myForm">
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        <div class="col-9">
+            <div class="form-group">
+                @Html.DropDownListFor(model => model.ExamId, ViewBag.examList as SelectList, "Choose Exam ..", new { @class = "form-control", id = "ddListId" })
+                @Html.ValidationMessageFor(model => model.ExamId, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                @Html.TextBoxFor(model => model.QuestionText, new { @class = "form-control", id = "txtQuestion", @placeHolder = "Question .. " })
+                @Html.ValidationMessageFor(model => model.QuestionText, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                @Html.TextBoxFor(model => model.Score, new { @class = "form-control", @placeHolder = "Score ..", id = "txtScore", @type = "number" })
+                @Html.ValidationMessageFor(model => model.Score, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                @Html.TextBoxFor(model => model.QuestionAnswer, new { @class = "form-control", id = "txtQuestionAnswer", @placeHolder = "Question Answer .. " })
+                @Html.ValidationMessageFor(model => model.QuestionAnswer, "", new { @class = "text-danger" })
+            </div>
+            <button type="button" id="optionBtn" class="btn btn-primary">Add Option</input>
+        </div>
+        <div class="col-3">
+            <table id="optionTable"></table>
+        </div>
+    </div>
+    <hr />
+
+
+    <div class="form-group">
+        <input type="button" id="saveBtn" value="Save" name="Save" class="btn btn-success btn-block mt-2" />
+        @*<button type="submit" id="saveBtn" class="btn btn-success btn-block mt-2">Save</button>*@
+    </div>
+</form>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+<script>
+    $(document).ready(function () {
+        $("#optionBtn").click(function () {
+            AddOptionToList();
+        });
+        $("#saveBtn").click(function () {
+            AddAnswerAndOptions();
+        });
+    });
+    var AddOptionToList = function () {
+        var dropDownVal = $("#ddListId").val();
+        var txtQuestionVal = $("#txtQuestion").val();
+        var txtScoreVal = $("#txtScore").val();
+        var txtQuestionAnswerVal = $("#txtQuestionAnswer").val();
+        var optionTable = $("#optionTable");
+
+        if (dropDownVal === "") {
+            alert("Please Choose Exam ..");
+            $("#ddListId").focus();
+            return false;
+        }
+        if (txtQuestionVal === "") {
+            alert("Please Enter Question ..");
+            $("#txtQuestion").focus();
+            return false;
+        }
+        if (txtScoreVal === "" || txtScoreVal === "0") {
+            alert("Please Enter Valid Score Of Question ..");
+            $("#txtScore").focus();
+            return false;
+        }
+        if (txtQuestionAnswerVal === "") {
+            alert("Please Enter Answer Option For Question..");
+            $("#txtQuestionAnswer").focus();
+            return false;
+        }
+        //Check options can't be more than 5
+        if ($("#optionTable tr").length === 5) {
+            alert("Can't Add More Than 5 Options ..");
+            //$("#txtQuestionAnswer").val('');
+            $("#saveBtn").focus();
+            return false;
+        }
+        //Another Way To Loop Through Table :
+        //$.each($("#optionTable tr"),
+        //    function () {
+        //        var valuesInOptionTable = $(this).find("td:eq(0) input[type=radio]").val();
+        //        if (valuesInOptionTable === txtQuestionAnswerVal) {
+        //            alert("Answer Already Added ! ..");
+        //            $("#txtQuestionAnswer").focus();
+        //            isExist = false;
+        //            return false;
+        //        }
+        //    });
+
+        //Check if option already added
+        //Add option Answer only if it was't exist before :
+        var isExist = true;
+        $("#optionTable tr").each(function () {
+            var valuesInOptionTable = $(this).find("td:eq(0) input[type=radio]").val();
+            if (valuesInOptionTable === txtQuestionAnswerVal) {
+                alert("Answer Already Added ! ..");
+                $("#txtQuestionAnswer").focus();
+                $("#txtQuestionAnswer").val('');
+                isExist = false;
+                return false;
+            }
+        });
+        if (isExist === true) {
+            //Add Option To Table :
+            var tableRecord = "<tr><td>  <input type='radio' value=" + txtQuestionAnswerVal + " name = 'optionName' /> " + txtQuestionAnswerVal + "</td></tr> ";
+            optionTable.append(tableRecord);
+            $("#txtQuestionAnswer").val('');
+            $("#txtQuestionAnswer").focus();
+        }
+    };
+    var AddAnswerAndOptions = function () {
+        //Check options can't be more or less than 5
+        if ($("#optionTable tr").length !== 5) {
+            alert("Can't Add More Or Less Than 5 Options ..");
+            //$("#txtQuestionAnswer").val('');
+            $("#saveBtn").focus();
+            return false;
+        }
+        //////make sure uesr check one of answers :
+        var answerValid = undefined;
+        //SelectedQuestionAnswer(Right Answer)
+        var QuestionAnswer = "";
+        $("#optionTable tr").each(function () {
+            debugger
+            QuestionAnswer = $(this).find("td:eq(0) input[type=radio]:checked").val();
+            if (QuestionAnswer !== undefined) {
+                answerValid = QuestionAnswer;
+            }
+        });
+        if (answerValid == undefined) {
+            alert("please check the right answer !");
+            return false;
+        }
+        //Add All Options TO OptionList Array :
+        var OptionList = [];
+        //Another Option Answers which will add to OptionList Array :
+        var optionName = "";
+        var answerChecked = "";
+        $("#optionTable tr").each(function () {
+            debugger
+            QuestionAnswer = $(this).find("td:eq(0) input[type=radio]:checked").val();
+            optionName = $(this).find("td:eq(0) input[type=radio]").val();
+            if (QuestionAnswer !== undefined) {
+                answerChecked = QuestionAnswer;
+            }
+            OptionList.push(optionName);
+        });
+        var QuestionViewModel = {};
+        QuestionViewModel.ExamId = $("#ddListId").val();
+        QuestionViewModel.QuestionText = $("#txtQuestion").val();
+        QuestionViewModel.Score = $("#txtScore").val();
+        QuestionViewModel.QuestionAnswer = answerChecked;
+        QuestionViewModel.OptionList = OptionList;
+
+        $.ajax({
+            type: "POST",
+            url: "/Question/AddQuestion",
+            data: JSON.stringify(QuestionViewModel),
+            dataType: "json",
+            contentType: "application/json;charset=utf-8",
+            success: function (response) {
+                if (response.result == 1) {
+                    $("#myModalAdd").modal("hide");
+                    /////////////
+                    swal({
+                        title: "Inserted  ",
+                        text: "Question Added Successfully !  ",
+                        type: "success",
+                        confirmButtonClass: "btn-primary",
+                        confirmButtonText: "Ok",
+                        showCancelButton: true,
+                        closeOnConfirm: false,
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            window.location.href = "/Question/Index";
+                        }
+                    });
+                    ///////////////////
+                    //    swal("Inserted !", "Room Inserted Successfully", "success");
+                    //    window.location.href = "/Question/Index";
+                    //} else if (response.result == 0) {
+                    //    swal("Failed !", "Insertion Failed", "error");
+                    //    return false;
+                }
+            }
+        });
+    }
+</script>

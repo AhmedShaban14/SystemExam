@@ -1,0 +1,48 @@
+﻿@model ExamSystem.Models.UserQuestion
+<form>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        <div class="col-3">
+            <div class="form-group">
+                @Html.DropDownListFor(model => model.ExamId, ViewBag.examList as SelectList, "Choose Exam ..", new { @class = "form-control", id = "ddListId" })
+                @Html.ValidationMessageFor(model => model.ExamId, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                <input type="button" onclick="showExamsForUser()" value="Show Result " name="Save" class="btn btn-outline-success btn-block mt-2" />
+            </div>
+        </div>
+        <div class="col-9">
+            <img src="~/Uploads/Exam.jpg" class="img-thumbnail" />
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+    });
+    var showExamsForUser = function () {
+        var examid = $("#ddListId").val();
+        $.ajax({
+            type: "get",
+            url: "/user/ShowExamsForUser",
+            data: { examid: examid },
+            success: function (response) {
+                if (response.result == 0) {
+                    alert("No Questions FOr user");
+                    window.location.href = "/User/Index";
+                } else if (response.result == 2) {
+                    alert("user has no exam before ");
+                    window.location.href = "/User/Index";
+                } else {
+                    window.location.href = "/User/ShowExamsForUser?examId=" + examid;
+                }
+            }
+        });
+    }
+</script>

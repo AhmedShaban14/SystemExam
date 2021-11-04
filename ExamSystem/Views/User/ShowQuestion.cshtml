@@ -1,0 +1,152 @@
+﻿@model ExamSystem.ViewModels.UserQuestionViewModel
+<table id="optionTable" class="table table-striped table-hover">
+    <tr>
+
+        <td>Question Text</td>
+        <td>Answer 1 </td>
+        <td>Answer 2 </td>
+        <td>Answer 3 </td>
+        <td>Answer 4 </td>
+        <td>Answer 5 </td>
+        <td></td>
+    </tr>
+    @if (ViewBag.questionList != null)
+    {
+        foreach (var question in ViewBag.questionList)
+        {
+            <tr id="row_@question.Id">
+                <th>@question.QuestionText</th>
+                @foreach (var answer in ViewBag.answerList)
+                {
+                    if (answer.QuestionId == question.Id)
+                    {
+                        <td>
+                            <input type="radio" value="@answer.AnswerText" name="question_@question.Id" /> @answer.AnswerText
+                        </td>
+                    }
+                }
+                <td>
+                    <button id="myBtn" onclick="SaveAnswer(@question.Id);" class="btn btn-success">Save</button>
+                    @*<a href="#" id="btnAnch" onclick="SaveAnswer(@question.Id);" class="btn btn-success">Save</a>*@
+
+                    @*<button type="button" onclick="return SaveAnswertAndItsQuestionId(@question.Id)" class="btn btn-success">SAVE</button>*@
+                    @*<input type="button" id="saveBtn" value="Save" name="Save" class="btn btn-success btn-block mt-2" />*@
+                    @* <button type="submit" onclick="SaveAnswertAndItsQuestionId(@question.Id)" class="btn btn-success">Save</button>*@
+                    @*<input type="button" id="saveBtn" value="Save" name="Save" class="btn btn-success btn-block mt-2" />*@
+                </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <div class="text-danger mt-2">
+            <b> Thers No Question For Now .. </b>
+        </div>
+
+    }
+
+</table>
+<div class="text-primary">
+    After Finish Exam. You can <a href="/User/ShowResult" class="btn btn-outline-info"> Click Here </a> To View Your Result ..
+</div>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#saveBtn").click(function () {
+            AddAnswerAndOptions();
+        });
+    });
+    var SaveAnswer = function (id) {
+        //////make sure uesr check one of answers :
+        var answerValid = undefined;
+        //SelectedQuestionAnswer(Right Answer)
+        var QuestionAnswer = "";
+        $("#optionTable tr").each(function () {
+            //QuestionAnswer = $(this).find("td:eq(0) input[type=radio]:checked").val();
+            var QuestionAnswer = $(this).find('input[type="radio"]:checked').val();
+            if (QuestionAnswer !== undefined) {
+                answerValid = QuestionAnswer;
+                alert("You Chooserd answer !" + answerValid);
+            }
+        });
+        if (answerValid == undefined) {
+            alert("please check the right answer !");
+            return false;
+        }
+        //Loop Once Again TO Add all fiels to my json Object :
+        var answerChecked = "";
+        $("#optionTable tr").each(function () {
+            QuestionAnswer = $(this).find('input[type="radio"]:checked').val();
+            if (QuestionAnswer !== undefined) {
+                answerChecked = QuestionAnswer;
+            }
+        });
+        var UserQuestionViewModel = {};
+        UserQuestionViewModel.QuestionId = id;
+        UserQuestionViewModel.ExamId =@Model.ExamId ;
+        UserQuestionViewModel.UserId = 2;
+        UserQuestionViewModel.AnswerText = answerChecked;
+        $.ajax({
+            type: "POST",
+            url: "/User/ShowQuestion",
+            data: JSON.stringify(UserQuestionViewModel),
+            dataType: "json",
+            contentType: "application/json;charset=utf-8",
+            success: function (response) {
+                if (response.result == 1) {
+                    alert("Record Saved Successfully");
+                    //$("#optionTable").find("#myBtn").prop("disabled", "disabled");
+                    //$("#optionTable tr").find('input[type="radio"]:checked').attr("disabled", true);
+                    $("#row_" + id).remove();
+                    window.location.href = "/User/ShowQuestion?examId=" + examid;
+                    $("#row_" + id).remove();
+                } else if (response.result == 0) {
+                    alert("Saved Failed");
+                }
+            }
+        });
+    }
+
+    var SaveAnswertAndItsQuestionId = function (id) {
+        var answerValid = undefined;
+        //SelectedQuestionAnswer(Right Answer)
+        var QuestionAnswer = "";
+        $("#optionTable tr").each(function () {
+            debugger
+            QuestionAnswer = $(this).find("td:eq(0) input[type=radio]:checked").val();
+            if (QuestionAnswer !== undefined) {
+                answerValid = QuestionAnswer;
+            }
+        });
+        if (answerValid == undefined) {
+            alert("please check the right answer !");
+            return false;
+        }
+
+        var data = {};
+        data.QuestionId = id;
+        data.ExamId = 1;
+        data.UserId = 2;
+        data.AnswerText = QuestionAnswer;
+        $.ajax({
+            type: "POST",
+            url: "/User/ShowQuestion",
+            data: JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json;charset=utf-8",
+            success: function (response) {
+                if (response.result == 1) {
+                    alert("Saved Successfully");
+                } else if (response.result == 0) {
+                    alert("Saved Failed");
+                }
+            }
+        });
+
+
+    };
+</script>

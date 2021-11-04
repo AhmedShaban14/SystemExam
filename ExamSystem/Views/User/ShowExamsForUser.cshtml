@@ -1,0 +1,78 @@
+﻿@model ExamSystem.ViewModels.UserResultViewModel
+
+@{
+    ViewBag.Title = "ShowExamsForUser";
+}
+
+<h2>ShowExamsForUser</h2>
+<div class="form-group row">
+    <div class="col-5">
+        <ul class="list-group">
+            @if (Model.userEmail == null || Model.Total == 0)
+            {
+                <li class="text-danger">You dont take an Exam !! </li>
+            }
+            else
+            {
+                <li class="list-group-item bg-light">
+                    <p class="text-secondary">
+                        <b>User Email : </b>
+                        <b class="text-primary"> @Model.userEmail  </b>
+                    </p>
+                </li>
+                <li class="list-group-item">
+                    <p class="text-secondary">
+                        <b>Total Score: </b>
+                        <b class="text-success"> @Model.Total  </b>
+                    </p>
+                </li>
+            }
+
+        </ul>
+    </div>
+    <div class="col-5">
+        <ul class="list-group">
+            @foreach (var question in Model.userQuestionList)
+            {
+                <li class="list-group-item bg-light">Right Answers Question Score Is : @question.Score </li>
+
+                foreach (var item in Model.userAnswerList.OrderByDescending(x => x.IsCorrect))
+                {
+                    if (item.QuestionId == question.Id)
+                    {
+                        if (item.IsCorrect == 1)
+                        {
+                            <li class="list-group-item ">
+                                <p class="text-secondary">
+                                    <b>Question : </b>
+                                    <b class="text-primary">@question.QuestionText  </b>
+                                </p>
+                            </li>
+
+                            <li class="list-group-item">
+                                <p class="text-secondary">
+                                    <b>Answer : </b>
+                                    <b class="text-success"> @item.AnswerText  </b>
+                                </p>
+                            </li>
+
+                        }
+                        else if (item.IsCorrect == 0)
+                        {
+                            <li class="list-group-item">
+                                <p class="text-secondary">
+                                    <b class="text-danger">Answer (X) @item.AnswerText  </b>
+                                </p>
+                            </li>
+                        }
+
+                    }
+
+
+                }
+                <hr />
+            }
+        </ul>
+    </div>
+</div>
+
