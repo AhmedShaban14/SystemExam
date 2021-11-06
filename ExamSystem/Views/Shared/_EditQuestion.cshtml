@@ -206,6 +206,14 @@
                     swal("Failed !", "Edit Failed", "error");
                     return false;
                 }
+                else if (response.result == 2) {
+                    swal("Failed !", "Question Updated Failed", "error");
+                    return false;
+                }
+                else if (response.result == 3) {
+                    swal("Failed !", "Options Of Question Updated Failed", "error");
+                    return false;
+                }
             }
         });
     }
